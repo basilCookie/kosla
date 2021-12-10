@@ -55,10 +55,12 @@ def print_help_text():
     ''' % (AtlasI2C.LONG_TIMEOUT, AtlasI2C.LONG_TIMEOUT))
        
 def main():
+    # 정지선 인식 한 횟수
     gool = 0
-
+    # 버퍼를 저장하기 위한 리스트
     rgb_list = []
-
+    
+    # 디바이스 정보 불러오기
     device_list = get_devices()
         
     device = device_list[0]
@@ -70,7 +72,7 @@ def main():
     real_raw_input = vars(__builtins__).get('raw_input', input)
     
     while True:
-    
+        # 커멘드 입력에 따라 여러 모드 선택가능
         user_cmd = real_raw_input(">> Enter command: ")
         
         # show all the available devices
@@ -97,26 +99,38 @@ def main():
             try:
                 while True:
                     print("-------press ctrl-c to stop the polling")
-                    # 출력 코드
                     for dev in device_list:
                         dev.write("R")
                     time.sleep(delaytime)
+		    # 내가 건드린 부분
                     for dev in device_list:
+                        # 읽어온 버퍼값 rgb_list 에 저장
                         rgb_list.append(dev.read())
+			# ,기준으로 rgb_list 리스트값 쪼개기
                         rgb_list2 = rgb_list[0].split(',')
+			# 색상이 저장된 rgb_list의 red 값 에서 : 기준으로 다시 쪼갬
+                        #  "sucess color :  255 " -> ("sucess color :" , [2,5,5]
                         red = rgb_list2[0].split(':')
+			# 쪼개진 rgb값 합쳐서 출력
                         red = ''.join(red[1])
+			#  색상이 저장된 rgb_list의 green 값 가져와서 쪼개진 rgb값을 합쳐서 출력 
                         green = rgb_list2[1]
                         green = ''.join(green)
+			# 색상이 저장된 rgb_list의 blue 값 가져와서 쪼개진 rgb값을 합쳐서 출력 
                         blue = rgb_list2[2]
                         blue = ''.join(blue)
+			# green 값이 red 와 blue보다 크면 한바퀴 돌았다고 판단 
                         if int(green) > int (red) and int(green) > int(blue):
                             gool += 1
                             print(gool)
+			    # 3바퀴 돌면 전원꺼짐	
                             if gool == 3:
                                 os.system("poweroff")
+			# rgb값 출력구문
                         print(int(red),int(green),int(blue))
+			#버퍼 초기화
                         rgb_list = []
+                        #여기가 끝 
                         #print(dev.read())
             except KeyboardInterrupt:       # catches the ctrl-c command, which breaks the loop above
                 print("Continuous polling stopped")
